@@ -33,10 +33,22 @@ var testData = []ActivityPost{
 func main() {
 	router := gin.Default()
 	router.GET("/activities", getActivityPosts)
+	router.POST("/activities", postActivityPosts)
 	router.Run("localhost:5000")
 	fmt.Println("test")
 }
 
 func getActivityPosts(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, testData)
+}
+
+func postActivityPosts(c *gin.Context) {
+	var newActivity ActivityPost
+
+	if err := c.BindJSON(&newActivity); err != nil {
+		return
+	}
+
+	testData = append(testData, newActivity)
+	c.IndentedJSON(http.StatusCreated, newActivity)
 }
