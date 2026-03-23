@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,12 +28,21 @@ type ActivityPost struct {
 }
 
 var testData = []ActivityPost{
-	{Id: 0, Title: "title0", Description: "description0", DurationHours: 0, DurationMinutes: 0, DurationSeconds: 0, Activity: Walking},
+	{
+		Id:              0,
+		Title:           "title0",
+		Description:     "description0",
+		DurationHours:   0,
+		DurationMinutes: 0,
+		DurationSeconds: 0,
+		Activity:        Walking,
+	},
 }
 
 func main() {
 	router := gin.Default()
 	router.GET("/activities", getActivityPosts)
+	router.GET("/activities/:id", getActivityPost)
 	router.POST("/activities", postActivityPosts)
 	router.Run("localhost:5000")
 	fmt.Println("test")
@@ -40,6 +50,23 @@ func main() {
 
 func getActivityPosts(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, testData)
+}
+
+func getActivityPost(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	for _, activity := range testData {
+		if activity.Id == id {
+			c.IndentedJSON(http.StatusOK, activity)
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
 func postActivityPosts(c *gin.Context) {
