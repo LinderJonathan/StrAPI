@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -27,25 +26,12 @@ type ActivityPost struct {
 	Activity        Activity `json:"activity"`
 }
 
-var testData = []ActivityPost{
-	{
-		Id:              0,
-		Title:           "title0",
-		Description:     "description0",
-		DurationHours:   0,
-		DurationMinutes: 0,
-		DurationSeconds: 0,
-		Activity:        Walking,
-	},
-}
-
 func main() {
 	router := gin.Default()
 	router.GET("/activities", getActivityPosts)
 	router.GET("/activities/:id", getActivityPost)
-	router.POST("/activities", postActivityPosts)
+	router.POST("/activities", postActivityPost)
 	router.Run("localhost:5000")
-	fmt.Println("test")
 }
 
 func getActivityPosts(c *gin.Context) {
@@ -69,7 +55,7 @@ func getActivityPost(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
-func postActivityPosts(c *gin.Context) {
+func postActivityPost(c *gin.Context) {
 	var newActivity ActivityPost
 
 	if err := c.BindJSON(&newActivity); err != nil {
@@ -79,3 +65,9 @@ func postActivityPosts(c *gin.Context) {
 	testData = append(testData, newActivity)
 	c.IndentedJSON(http.StatusCreated, newActivity)
 }
+
+func putActivityPost(c *gin.Context) {
+
+}
+
+func deleteActivityPost(c *gin.Context)
