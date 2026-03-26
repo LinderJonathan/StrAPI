@@ -1,6 +1,6 @@
 package main
 
-var testData = []ActivityPost{
+var testData = []Activity{
 	{
 		Id:              0,
 		Title:           "title0",
@@ -8,7 +8,7 @@ var testData = []ActivityPost{
 		DurationHours:   0,
 		DurationMinutes: 0,
 		DurationSeconds: 0,
-		Activity:        Walking,
+		ActivityType:    Walking,
 	},
 	{
 		Id:              1,
@@ -17,7 +17,7 @@ var testData = []ActivityPost{
 		DurationHours:   1,
 		DurationMinutes: 1,
 		DurationSeconds: 1,
-		Activity:        Jogging,
+		ActivityType:    Jogging,
 	},
 	{
 		Id:              2,
@@ -26,6 +26,6 @@ var testData = []ActivityPost{
 		DurationHours:   2,
 		DurationMinutes: 2,
 		DurationSeconds: 2,
-		Activity:        Cycling,
+		ActivityType:    Cycling,
 	},
 }

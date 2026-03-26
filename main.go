@@ -7,38 +7,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Activity int8
+type ActivityType int8
 
 const (
-	NoActivity Activity = iota
+	NoActivity ActivityType = iota
 	Walking
 	Jogging
 	Cycling
 )
 
-type ActivityPost struct {
-	Id              int64    `json:"id"`
-	Title           string   `json:"title"`
-	Description     string   `json:"description"`
-	DurationHours   int8     `json:"durationHours"`
-	DurationMinutes int8     `json:"durationMinutes"`
-	DurationSeconds int8     `json:"durationSeconds"`
-	Activity        Activity `json:"activity"`
+type Activity struct {
+	Id              int64        `json:"id"`
+	Title           string       `json:"title"`
+	Description     string       `json:"description"`
+	DurationHours   int8         `json:"durationHours"`
+	DurationMinutes int8         `json:"durationMinutes"`
+	DurationSeconds int8         `json:"durationSeconds"`
+	ActivityType    ActivityType `json:"activity"`
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/activities", getActivityPosts)
-	router.GET("/activities/:id", getActivityPost)
-	router.POST("/activities", postActivityPost)
+	router.GET("/activities", getAllActivities)
+	router.GET("/activities/:id", getActivity)
+	router.POST("/activities", postActivity)
+	router.PUT("/activities/:id", putActivity)
 	router.Run("localhost:5000")
 }
 
-func getActivityPosts(c *gin.Context) {
+func getAllActivities(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, testData)
 }
 
-func getActivityPost(c *gin.Context) {
+func getActivity(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 
@@ -55,8 +56,10 @@ func getActivityPost(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
-func postActivityPost(c *gin.Context) {
-	var newActivity ActivityPost
+// TODO:
+// Check that Id is unique
+func postActivity(c *gin.Context) {
+	var newActivity Activity
 
 	if err := c.BindJSON(&newActivity); err != nil {
 		return
@@ -66,8 +69,33 @@ func postActivityPost(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newActivity)
 }
 
-func putActivityPost(c *gin.Context) {
+// put towards specific id.
+// only works if the endpoint we put towards has data already
+func putActivity(c *gin.Context) {
 
+	var newActivity Activity
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i, activity := range testData {
+		if activity.Id == id {
+			// Id exists, bind data to new variable and replace new values?
+			if err := c.BindJSON(&newActivity); err != nil {
+				c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			testData[i] = newActivity
+			c.IndentedJSON(http.StatusOK, newActivity)
+			return
+		}
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+		return
+	}
 }
 
-func deleteActivityPost(c *gin.Context)
+func deleteActivity(c *gin.Context)
