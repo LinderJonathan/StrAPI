@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"strAPI/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,17 +61,11 @@ func getActivity(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
-// TODO:
-// Check that Id is unique
 func postActivity(c *gin.Context) {
-
-	// TODO: validate input
 
 	// TODO: generate an ID
 
 	// TODO: prevent duplicate POST  requests (Id unique)
-
-	// TODO: return location header
 
 	var newActivity Activity
 
@@ -77,7 +74,11 @@ func postActivity(c *gin.Context) {
 		return
 	}
 
+	util.ValidateActivity()
+
 	testData = append(testData, newActivity)
+	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
+	// send response back to client
 	c.IndentedJSON(http.StatusCreated, newActivity)
 }
 
