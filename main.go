@@ -32,6 +32,7 @@ func main() {
 	router.GET("/activities/:id", getActivity)
 	router.POST("/activities", postActivity)
 	router.PUT("/activities/:id", putActivity)
+	router.DELETE("/activities/:id", deleteActivity)
 	router.Run("localhost:5000")
 }
 
@@ -39,6 +40,7 @@ func getAllActivities(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, testData)
 }
 
+// TODO: fix
 func getActivity(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -59,9 +61,19 @@ func getActivity(c *gin.Context) {
 // TODO:
 // Check that Id is unique
 func postActivity(c *gin.Context) {
+
+	// TODO: validate input
+
+	// TODO: generate an ID
+
+	// TODO: prevent duplicate POST  requests (Id unique)
+
+	// TODO: return location header
+
 	var newActivity Activity
 
 	if err := c.BindJSON(&newActivity); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -93,9 +105,26 @@ func putActivity(c *gin.Context) {
 			c.IndentedJSON(http.StatusOK, newActivity)
 			return
 		}
-		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
-		return
 	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+	return
 }
 
-func deleteActivity(c *gin.Context)
+func deleteActivity(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i, activity := range testData {
+		if activity.Id == id {
+			testData = append(testData[:i], testData[i+1:]...)
+			c.IndentedJSON(http.StatusOK, gin.H{"success": "deleted activity", "Id": id})
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+}
