@@ -5,29 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"strAPI/test"
 	"strAPI/util"
 
 	"github.com/gin-gonic/gin"
 )
-
-type ActivityType int8
-
-const (
-	NoActivity ActivityType = iota
-	Walking
-	Jogging
-	Cycling
-)
-
-type Activity struct {
-	Id              int64        `json:"id"`
-	Title           string       `json:"title"`
-	Description     string       `json:"description"`
-	DurationHours   int8         `json:"durationHours"`
-	DurationMinutes int8         `json:"durationMinutes"`
-	DurationSeconds int8         `json:"durationSeconds"`
-	ActivityType    ActivityType `json:"activity"`
-}
 
 func main() {
 	router := gin.Default()
@@ -39,20 +21,33 @@ func main() {
 	router.Run("localhost:5000")
 }
 
+/*
+ * Function getAllActivities
+ *
+ * GET request.
+ * Returns all activities. This functionality is only for testing purposes
+ */
 func getAllActivities(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, testData)
+	c.IndentedJSON(http.StatusOK, test.TestData)
 }
 
-// TODO: fix
+/*
+ * Function getActivity
+ *
+ * GET request.
+ * Returns the respective activity based on the Id provided in the request
+ * Successful if an activity with that Id exists, otherwise returns an
+ * error in the response
+ */
 func getActivity(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	for _, activity := range testData {
+	for _, activity := range test.TestData {
 		if activity.Id == id {
 			c.IndentedJSON(http.StatusOK, activity)
 			return
@@ -61,48 +56,63 @@ func getActivity(c *gin.Context) {
 	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
+/*
+ * Function postActivity
+ *
+ * POST request.
+ * Creates a new endpoint with a given Id.
+ * Successful if the generated Id is unique and validation passes
+ */
 func postActivity(c *gin.Context) {
 
 	// TODO: generate an ID
 
 	// TODO: prevent duplicate POST  requests (Id unique)
 
-	var newActivity Activity
+	var newActivity util.Activity
 
 	if err := c.BindJSON(&newActivity); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	util.ValidateActivity()
+	// TODO: return an error to handle instead
+	err := util.ValidateActivity(&newActivity)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 
-	testData = append(testData, newActivity)
+	test.TestData = append(test.TestData, newActivity)
 	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
 	// send response back to client
 	c.IndentedJSON(http.StatusCreated, newActivity)
 }
 
-// put towards specific id.
-// only works if the endpoint we put towards has data already
+/* Function putActivity
+ *
+ * PUT request
+ * Matches the endpoint Id towards existing activities.
+ * Successful if the Id exists, otherwise returns an error in the response
+ */
 func putActivity(c *gin.Context) {
 
-	var newActivity Activity
+	var newActivity util.Activity
 	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseUint(idStr, 10, 64)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	for i, activity := range testData {
+	for i, activity := range test.TestData {
 		if activity.Id == id {
-			// Id exists, bind data to new variable and replace new values?
+			// Id exists, bind data to new variable and replace activity data
 			if err := c.BindJSON(&newActivity); err != nil {
 				c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-			testData[i] = newActivity
+			test.TestData[i] = newActivity
 			c.IndentedJSON(http.StatusOK, newActivity)
 			return
 		}
@@ -111,17 +121,23 @@ func putActivity(c *gin.Context) {
 	return
 }
 
+/* Function deleteActivity
+ *
+ * DELETE request.
+ * Matches the endpoint Id towards existing activities.
+ * Successful if the Id exists, otherwise returns an error the response
+ */
 func deleteActivity(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	for i, activity := range testData {
+	for i, activity := range test.TestData {
 		if activity.Id == id {
-			testData = append(testData[:i], testData[i+1:]...)
+			test.TestData = append(test.TestData[:i], test.TestData[i+1:]...)
 			c.IndentedJSON(http.StatusOK, gin.H{"success": "deleted activity", "Id": id})
 			return
 		}

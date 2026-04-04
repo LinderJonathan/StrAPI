@@ -56,3 +56,5 @@ to be implemented
 
 ## Questions
 1. How does POST requests "magically" work with the handler function?
+
+2. How are "race-conditions" handled, i.e. possible PUT requests towards the same endpoint?

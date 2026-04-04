@@ -1,6 +1,8 @@
-package main
+package test
 
-var testData = []Activity{
+import "strAPI/util"
+
+var TestData = []util.Activity{
 	{
 		Id:              0,
 		Title:           "title0",
@@ -8,7 +10,7 @@ var testData = []Activity{
 		DurationHours:   0,
 		DurationMinutes: 0,
 		DurationSeconds: 0,
-		ActivityType:    Walking,
+		ActivityType:    util.ActivityType(util.Walking),
 	},
 	{
 		Id:              1,
@@ -17,7 +19,7 @@ var testData = []Activity{
 		DurationHours:   1,
 		DurationMinutes: 1,
 		DurationSeconds: 1,
-		ActivityType:    Jogging,
+		ActivityType:    util.ActivityType(util.Jogging),
 	},
 	{
 		Id:              2,
@@ -26,6 +28,6 @@ var testData = []Activity{
 		DurationHours:   2,
 		DurationMinutes: 2,
 		DurationSeconds: 2,
-		ActivityType:    Cycling,
+		ActivityType:    util.ActivityType(util.Cycling),
 	},
 }
