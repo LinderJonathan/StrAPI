@@ -65,9 +65,7 @@ func getActivity(c *gin.Context) {
  */
 func postActivity(c *gin.Context) {
 
-	// TODO: generate an ID
-
-	// TODO: prevent duplicate POST  requests (Id unique)
+	// TODO: After creating a Id, check if its a duplicate
 
 	var newActivity util.Activity
 
@@ -76,7 +74,6 @@ func postActivity(c *gin.Context) {
 		return
 	}
 
-	// TODO: return an error to handle instead
 	err := util.ValidateActivity(&newActivity)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -104,6 +101,8 @@ func putActivity(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// TODO: call validateActivity() on the new activity data
 
 	for i, activity := range test.TestData {
 		if activity.Id == id {

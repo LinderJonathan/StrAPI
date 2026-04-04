@@ -21,7 +21,6 @@ type Activity struct {
 	ActivityType    ActivityType `json:"activity"`
 }
 
-// TODO: validate input
 func ValidateActivity(activity *Activity) error {
 
 	if activity.Title == "" {
@@ -31,4 +30,9 @@ func ValidateActivity(activity *Activity) error {
 	}
 
 	return nil
+}
+
+// TODO: function to generate Id
+func generateId() uint64 {
+	return 0
 }
