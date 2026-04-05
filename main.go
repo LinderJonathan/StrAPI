@@ -9,6 +9,7 @@ import (
 	"strAPI/util"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
