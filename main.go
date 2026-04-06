@@ -33,7 +33,36 @@ func main() {
  * Returns all activities. This functionality is only for testing purposes
  */
 func getAllActivities(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, test.TestData)
+
+	var activities []util.Activity
+
+	query := "SELECT * FROM activities"
+	rows, err := db.DBConn.Query(query)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for rows.Next() {
+		var activity util.Activity
+		err := rows.Scan(
+			&activity.Id,
+			&activity.Title,
+			&activity.Description,
+			&activity.DurationHours,
+			&activity.DurationMinutes,
+			&activity.DurationSeconds,
+			&activity.ActivityType)
+
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		activities = append(activities, activity)
+	}
+
+	c.IndentedJSON(http.StatusOK, activities)
 }
 
 /*

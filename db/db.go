@@ -46,7 +46,7 @@ func createActivityTable() {
 	var err error
 	numUniqueActivitesStr := strconv.Itoa(int(util.NumberOfActivites))
 	query := `
-	CREATE TABLE IF NOT EXISTS activities (
+	CREATE TABLE IF NOT EXISTS Activities (
 		id INT PRIMARY KEY,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
