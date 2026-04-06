@@ -9,6 +9,7 @@ const (
 	Walking
 	Jogging
 	Cycling
+	NumberOfActivites // Used to retrieve amount of activites
 )
 
 type Activity struct {

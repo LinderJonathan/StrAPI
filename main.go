@@ -5,14 +5,18 @@ import (
 	"net/http"
 	"strconv"
 
+	"strAPI/db"
 	"strAPI/test"
 	"strAPI/util"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+
+	db.InitDB()
+	defer db.DBConn.Close()
+
 	router := gin.Default()
 	router.GET("/activities", getAllActivities)
 	router.GET("/activities/:id", getActivity)
