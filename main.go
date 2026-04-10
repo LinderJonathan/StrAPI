@@ -36,7 +36,17 @@ func getAllActivities(c *gin.Context) {
 
 	var activities []util.Activity
 
-	query := "SELECT * FROM activities"
+	query := `
+	SELECT 
+		id, 
+		title,
+		description,
+		durationHours,
+		durationMinutes,
+		durationSeconds,
+		activityType
+	FROM Activities 
+	`
 	rows, err := db.DBConn.Query(query)
 
 	if err != nil {
@@ -81,12 +91,33 @@ func getActivity(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	for _, activity := range test.TestData {
-		if activity.Id == id {
-			c.IndentedJSON(http.StatusOK, activity)
-			return
-		}
+
+	var activity util.Activity
+	query := `
+	SELECT 
+		id, 
+		title,
+		description,
+		durationHours,
+		durationMinutes,
+		durationSeconds,
+		activityType
+	FROM Activities 
+	WHERE id = ?
+	`
+	err = db.DBConn.QueryRow(query, id).Scan(
+		&activity.Id,
+		&activity.Title,
+		&activity.Description,
+		&activity.DurationHours,
+		&activity.DurationMinutes,
+		&activity.DurationSeconds,
+		&activity.ActivityType)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
+
 	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
 }
 
@@ -111,9 +142,30 @@ func postActivity(c *gin.Context) {
 	err := util.ValidateActivity(&newActivity)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
-	test.TestData = append(test.TestData, newActivity)
+	query := `
+	INSERT INTO Activities
+		(id, title, description, durationHours, durationMinutes, durationSeconds, activityType)
+	VALUES(?, ?, ?, ?, ?, ?, ?)
+	`
+
+	_, err = db.DBConn.Exec(
+		query,
+		&newActivity.Id,
+		&newActivity.Title,
+		&newActivity.Description,
+		&newActivity.DurationHours,
+		&newActivity.DurationMinutes,
+		&newActivity.DurationSeconds,
+		&newActivity.ActivityType)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
 	// send response back to client
 	c.IndentedJSON(http.StatusCreated, newActivity)
