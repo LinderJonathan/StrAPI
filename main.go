@@ -105,6 +105,7 @@ func getActivity(c *gin.Context) {
 	FROM Activities 
 	WHERE id = ?
 	`
+	fmt.Println("querying id = %d", id)
 	err = db.DBConn.QueryRow(query, id).Scan(
 		&activity.Id,
 		&activity.Title,
@@ -116,9 +117,10 @@ func getActivity(c *gin.Context) {
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+	c.IndentedJSON(http.StatusOK, activity)
 }
 
 /*
