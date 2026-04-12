@@ -105,7 +105,7 @@ func getActivity(c *gin.Context) {
 	FROM Activities 
 	WHERE id = ?
 	`
-	fmt.Println("querying id = %d", id)
+
 	err = db.DBConn.QueryRow(query, id).Scan(
 		&activity.Id,
 		&activity.Title,
@@ -132,10 +132,16 @@ func getActivity(c *gin.Context) {
  */
 func postActivity(c *gin.Context) {
 
-	// TODO: After creating a Id, check if its a duplicate
+	// TODO: Create an ID, assign it to the new activity
 
+	// IDEA 1: SQL has auto increment. could maybe use that to get unique ID for rows
+
+	// IDEA 2: Create a struct that holds all data without the ID. This way a POST request
+	//		   Won't accidentaly include the ID -> lets go with this!
 	var newActivity util.Activity
 
+	// id = functionToBeCreatedToGetId..
+	// newActivity.Id = id
 	if err := c.BindJSON(&newActivity); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -168,8 +174,8 @@ func postActivity(c *gin.Context) {
 		return
 	}
 
+	// Signal client of the new endpoint
 	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
-	// send response back to client
 	c.IndentedJSON(http.StatusCreated, newActivity)
 }
 
@@ -190,21 +196,44 @@ func putActivity(c *gin.Context) {
 		return
 	}
 
-	// TODO: call validateActivity() on the new activity data
-
-	for i, activity := range test.TestData {
-		if activity.Id == id {
-			// Id exists, bind data to new variable and replace activity data
-			if err := c.BindJSON(&newActivity); err != nil {
-				c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-			test.TestData[i] = newActivity
-			c.IndentedJSON(http.StatusOK, newActivity)
-			return
-		}
+	if err := c.BindJSON(&newActivity); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+
+	newActivity.Id = id // using ID from URL (not JSON body)
+
+	// TODO: call validateActivity() on the new activity data
+	query := `
+	INSERT INTO activities
+		(id, title, description, durationHours, durationMinutes, durationSeconds, activityType)
+	VALUES(?, ?, ?, ?, ?, ?, ?)
+	ON DUPLICATE KEY
+		title=VALUES(title)
+		description=VALUES(description)
+		durationHours=VALUES(durationHours)
+		durationMinutes=VALUES(durationMinutes)
+		durationSeconds=VALUES(durationSeconds)
+		activityType=VALUES(activityType)
+	`
+
+	_, err = db.DBConn.Exec(
+		query,
+		&newActivity.Id,
+		&newActivity.Title,
+		&newActivity.Description,
+		&newActivity.DurationHours,
+		&newActivity.DurationMinutes,
+		&newActivity.DurationSeconds,
+		&newActivity.ActivityType)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	// Signal client of the new/modified endpoint
+	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
+	c.IndentedJSON(http.StatusOK, newActivity)
 	return
 }
 
