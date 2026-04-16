@@ -22,18 +22,22 @@ type Activity struct {
 	ActivityType    ActivityType `json:"activity"`
 }
 
-func ValidateActivity(activity *Activity) error {
+type ActivityRequest struct {
+	Title           string       `json:"title"`
+	Description     string       `json:"description"`
+	DurationHours   uint8        `json:"durationHours"`
+	DurationMinutes uint8        `json:"durationMinutes"`
+	DurationSeconds uint8        `json:"durationSeconds"`
+	ActivityType    ActivityType `json:"activity"`
+}
 
-	if activity.Title == "" {
+func ValidateActivity(activityRequest *ActivityRequest) error {
+
+	if activityRequest.Title == "" {
 		return errors.New("Activities are required to have a title")
-	} else if activity.ActivityType == NoActivity {
+	} else if activityRequest.ActivityType == NoActivity {
 		return errors.New("Activities are required to be of a certain type")
 	}
 
 	return nil
-}
-
-// TODO: function to generate Id
-func generateId() uint64 {
-	return 0
 }

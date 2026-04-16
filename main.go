@@ -132,22 +132,15 @@ func getActivity(c *gin.Context) {
  */
 func postActivity(c *gin.Context) {
 
-	// TODO: Create an ID, assign it to the new activity
+	// request struct. does not contain ID
+	var activityRequest util.ActivityRequest
 
-	// IDEA 1: SQL has auto increment. could maybe use that to get unique ID for rows
-
-	// IDEA 2: Create a struct that holds all data without the ID. This way a POST request
-	//		   Won't accidentaly include the ID -> lets go with this!
-	var newActivity util.Activity
-
-	// id = functionToBeCreatedToGetId..
-	// newActivity.Id = id
-	if err := c.BindJSON(&newActivity); err != nil {
+	if err := c.BindJSON(&activityRequest); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := util.ValidateActivity(&newActivity)
+	err := util.ValidateActivity(&activityRequest)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -155,28 +148,44 @@ func postActivity(c *gin.Context) {
 
 	query := `
 	INSERT INTO Activities
-		(id, title, description, durationHours, durationMinutes, durationSeconds, activityType)
-	VALUES(?, ?, ?, ?, ?, ?, ?)
+		(title, description, durationHours, durationMinutes, durationSeconds, activityType)
+	VALUES(?, ?, ?, ?, ?, ?)
 	`
 
-	_, err = db.DBConn.Exec(
+	result, err := db.DBConn.Exec(
 		query,
-		&newActivity.Id,
-		&newActivity.Title,
-		&newActivity.Description,
-		&newActivity.DurationHours,
-		&newActivity.DurationMinutes,
-		&newActivity.DurationSeconds,
-		&newActivity.ActivityType)
+		&activityRequest.Title,
+		&activityRequest.Description,
+		&activityRequest.DurationHours,
+		&activityRequest.DurationMinutes,
+		&activityRequest.DurationSeconds,
+		&activityRequest.ActivityType)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Signal client of the new endpoint
-	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
-	c.IndentedJSON(http.StatusCreated, newActivity)
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch id "})
+	}
+
+	// add id to response struct, Signal client of the new endpoint
+	var activity util.Activity = util.Activity{
+		Id:              uint64(id),
+		Title:           activityRequest.Title,
+		Description:     activityRequest.Description,
+		DurationHours:   activityRequest.DurationHours,
+		DurationMinutes: activityRequest.DurationMinutes,
+		DurationSeconds: activityRequest.DurationSeconds,
+		ActivityType:    activityRequest.ActivityType,
+	}
+
+	c.Header("Location", fmt.Sprintf("/activities/%d"))
+
+	c.IndentedJSON(http.StatusCreated, activity)
 }
 
 /* Function putActivity
@@ -187,6 +196,7 @@ func postActivity(c *gin.Context) {
  */
 func putActivity(c *gin.Context) {
 
+	// TODO: putActivity shouldn't obtain an ID, just like the POST
 	var newActivity util.Activity
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
