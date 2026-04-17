@@ -72,6 +72,10 @@ func getAllActivities(c *gin.Context) {
 		activities = append(activities, activity)
 	}
 
+	if err := rows.Err(); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
 	c.IndentedJSON(http.StatusOK, activities)
 }
 
@@ -154,12 +158,12 @@ func postActivity(c *gin.Context) {
 
 	result, err := db.DBConn.Exec(
 		query,
-		&activityRequest.Title,
-		&activityRequest.Description,
-		&activityRequest.DurationHours,
-		&activityRequest.DurationMinutes,
-		&activityRequest.DurationSeconds,
-		&activityRequest.ActivityType)
+		activityRequest.Title,
+		activityRequest.Description,
+		activityRequest.DurationHours,
+		activityRequest.DurationMinutes,
+		activityRequest.DurationSeconds,
+		activityRequest.ActivityType)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -183,7 +187,7 @@ func postActivity(c *gin.Context) {
 		ActivityType:    activityRequest.ActivityType,
 	}
 
-	c.Header("Location", fmt.Sprintf("/activities/%d"))
+	c.Header("Location", fmt.Sprintf("/activities/%d", id))
 
 	c.IndentedJSON(http.StatusCreated, activity)
 }
@@ -196,29 +200,18 @@ func postActivity(c *gin.Context) {
  */
 func putActivity(c *gin.Context) {
 
-	// TODO: putActivity shouldn't obtain an ID, just like the POST
-	var newActivity util.Activity
-	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	var activityRequest util.ActivityRequest
 
-	if err != nil {
+	if err := c.BindJSON(&activityRequest); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := c.BindJSON(&newActivity); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	newActivity.Id = id // using ID from URL (not JSON body)
-
-	// TODO: call validateActivity() on the new activity data
 	query := `
-	INSERT INTO activities
+	INSERT INTO Activities
 		(id, title, description, durationHours, durationMinutes, durationSeconds, activityType)
 	VALUES(?, ?, ?, ?, ?, ?, ?)
-	ON DUPLICATE KEY
+	ON DUPLICATE KEY UPDATE
 		title=VALUES(title)
 		description=VALUES(description)
 		durationHours=VALUES(durationHours)
@@ -227,7 +220,11 @@ func putActivity(c *gin.Context) {
 		activityType=VALUES(activityType)
 	`
 
-	_, err = db.DBConn.Exec(
+	// TODO: putActivity shouldn't obtain an ID, just like the POST
+
+	// TODO: call validateActivity() on the new activity data
+
+	result, err := db.DBConn.Exec(
 		query,
 		&newActivity.Id,
 		&newActivity.Title,

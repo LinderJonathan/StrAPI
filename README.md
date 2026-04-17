@@ -16,7 +16,6 @@ curl http://localhost:5000/activities/0
 curl -X POST http://localhost:5000/activities \
 -H "Content-Type: application/json" \
 -d '{
-  "id": 1,
   "title": "title1",
   "description": "description1",
   "durationHours": 1,

@@ -47,13 +47,13 @@ func createActivityTable() {
 	numUniqueActivitesStr := strconv.Itoa(int(util.NumberOfActivites))
 	query := `
 	CREATE TABLE IF NOT EXISTS Activities (
-		id INT AUTO_INCREMENT PRIMARY KEY,
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
-		durationHours INT CHECK (durationHours >= 0),
-		durationMinutes INT CHECK (durationMinutes >= 0),
-		durationSeconds INT CHECK (durationSeconds >= 0),
-		activityType INT CHECK (activityType BETWEEN 0 AND ` + numUniqueActivitesStr + `)
+		durationHours INTEGER CHECK (durationHours >= 0),
+		durationMinutes INTEGER CHECK (durationMinutes >= 0),
+		durationSeconds INTEGER CHECK (durationSeconds >= 0),
+		activityType INTEGER CHECK (activityType BETWEEN 0 AND ` + numUniqueActivitesStr + `)
 	);
 	`
 	_, err = DBConn.Exec(query)
