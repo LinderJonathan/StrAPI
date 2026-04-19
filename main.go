@@ -212,6 +212,10 @@ func putActivity(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
+	// TODO: change the logic for the query
+	// 1. query 1 is an update (where id = id). If that is unsuccessful, go to query 2
+	// 2. Query 2 is simply an insert query. Id is new, so no need to worry about that
+
 	query := `
 	INSERT INTO Activities
 		(title, description, durationHours, durationMinutes, durationSeconds, activityType)
@@ -270,8 +274,6 @@ func deleteActivity(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 
-	// idea: encapsulate all the delete logic into a single function.
-	// new struct: bind methods to it
 	query := "DELETE FROM Activities WHERE id = ?"
 
 	result, err := db.DBConn.Exec(
