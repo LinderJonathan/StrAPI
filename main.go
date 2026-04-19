@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"strAPI/db"
-	"strAPI/test"
 	"strAPI/util"
 
 	"github.com/gin-gonic/gin"
@@ -166,14 +166,14 @@ func postActivity(c *gin.Context) {
 		activityRequest.ActivityType)
 
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Fatalln(err)
 		return
 	}
 
 	id, err := result.LastInsertId()
 
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch id "})
+		log.Fatalln(err)
 	}
 
 	// add id to response struct, Signal client of the new endpoint
@@ -207,10 +207,15 @@ func putActivity(c *gin.Context) {
 		return
 	}
 
+	// TODO: conditional on the *err*
+	if err := util.ValidateActivity(&activityRequest); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
 	query := `
 	INSERT INTO Activities
-		(id, title, description, durationHours, durationMinutes, durationSeconds, activityType)
-	VALUES(?, ?, ?, ?, ?, ?, ?)
+		(title, description, durationHours, durationMinutes, durationSeconds, activityType)
+	VALUES(?, ?, ?, ?, ?, ?)
 	ON DUPLICATE KEY UPDATE
 		title=VALUES(title)
 		description=VALUES(description)
@@ -220,27 +225,38 @@ func putActivity(c *gin.Context) {
 		activityType=VALUES(activityType)
 	`
 
-	// TODO: putActivity shouldn't obtain an ID, just like the POST
-
-	// TODO: call validateActivity() on the new activity data
-
 	result, err := db.DBConn.Exec(
 		query,
-		&newActivity.Id,
-		&newActivity.Title,
-		&newActivity.Description,
-		&newActivity.DurationHours,
-		&newActivity.DurationMinutes,
-		&newActivity.DurationSeconds,
-		&newActivity.ActivityType)
+		activityRequest.Title,
+		activityRequest.Description,
+		activityRequest.DurationHours,
+		activityRequest.DurationMinutes,
+		activityRequest.DurationSeconds,
+		activityRequest.ActivityType)
 
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Fatalln(err)
+		return
 	}
 
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+
+	var activity util.Activity = util.Activity{
+		Id:              uint64(id),
+		Title:           activityRequest.Title,
+		Description:     activityRequest.Description,
+		DurationHours:   activityRequest.DurationHours,
+		DurationMinutes: activityRequest.DurationMinutes,
+		DurationSeconds: activityRequest.DurationSeconds,
+		ActivityType:    activityRequest.ActivityType,
+	}
 	// Signal client of the new/modified endpoint
-	c.Header("Location", fmt.Sprintf("/activities/%d", newActivity.Id))
-	c.IndentedJSON(http.StatusOK, newActivity)
+	c.Header("Location", fmt.Sprintf("/activities/%d", id))
+	c.IndentedJSON(http.StatusCreated, activity)
 	return
 }
 
@@ -253,18 +269,29 @@ func putActivity(c *gin.Context) {
 func deleteActivity(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
+
+	// idea: encapsulate all the delete logic into a single function.
+	// new struct: bind methods to it
+	query := "DELETE FROM Activities WHERE id = ?"
+
+	result, err := db.DBConn.Exec(
+		query,
+		id)
+
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	for i, activity := range test.TestData {
-		if activity.Id == id {
-			test.TestData = append(test.TestData[:i], test.TestData[i+1:]...)
-			c.IndentedJSON(http.StatusOK, gin.H{"success": "deleted activity", "Id": id})
-			return
-		}
+	rowsCount, err := result.RowsAffected()
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "could not determine the affected rows"})
 	}
 
-	c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not found"})
+	if rowsCount == 0 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "activity not removed (not found)"})
+	}
+
+	c.Status(http.StatusNoContent)
 }
