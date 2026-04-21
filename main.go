@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -200,6 +201,14 @@ func postActivity(c *gin.Context) {
  */
 func putActivity(c *gin.Context) {
 
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "invalid ID"})
+		return
+	}
+
 	var activityRequest util.ActivityRequest
 
 	if err := c.BindJSON(&activityRequest); err != nil {
@@ -207,30 +216,31 @@ func putActivity(c *gin.Context) {
 		return
 	}
 
-	// TODO: conditional on the *err*
 	if err := util.ValidateActivity(&activityRequest); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	// TODO: change the logic for the query
 	// 1. query 1 is an update (where id = id). If that is unsuccessful, go to query 2
 	// 2. Query 2 is simply an insert query. Id is new, so no need to worry about that
 
-	query := `
-	INSERT INTO Activities
-		(title, description, durationHours, durationMinutes, durationSeconds, activityType)
-	VALUES(?, ?, ?, ?, ?, ?)
-	ON DUPLICATE KEY UPDATE
-		title=VALUES(title)
-		description=VALUES(description)
-		durationHours=VALUES(durationHours)
-		durationMinutes=VALUES(durationMinutes)
-		durationSeconds=VALUES(durationSeconds)
-		activityType=VALUES(activityType)
+	var result sql.Result
+
+	updateQuery := `
+	UPDATE Activities SET
+		title = ?,
+		description = ?,
+		durationHours = ?,
+		durationMinutes = ?,
+		durationSeconds = ?,
+		activityType = ?
+	WHERE id = ?
 	`
 
-	result, err := db.DBConn.Exec(
-		query,
+	result, err = db.DBConn.Exec(
+		updateQuery,
+		id,
 		activityRequest.Title,
 		activityRequest.Description,
 		activityRequest.DurationHours,
@@ -239,14 +249,39 @@ func putActivity(c *gin.Context) {
 		activityRequest.ActivityType)
 
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+		return
+	}
+
+	rows, err := result.RowsAffected()
+
+	if err != nil {
 		log.Fatalln(err)
 		return
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		log.Fatalln(err)
-		return
+	if rows == 0 {
+		insertQuery := `
+		INSERT INTO Activities
+			(title, description, durationHours, durationMinutes, durationSeconds, activityType)
+		VALUES (?, ?, ?, ?, ?, ?)
+		`
+
+		// TODO: handle err
+		result, err = db.DBConn.Exec(
+			insertQuery,
+			activityRequest.Title,
+			activityRequest.Description,
+			activityRequest.DurationHours,
+			activityRequest.DurationMinutes,
+			activityRequest.DurationSeconds,
+			activityRequest.ActivityType)
+
+		id, err = result.LastInsertId()
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
 	}
 
 	var activity util.Activity = util.Activity{
