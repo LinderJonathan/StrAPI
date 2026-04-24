@@ -30,6 +30,7 @@ curl -X POST http://localhost:5000/activities \
 curl -X PUT http://localhost:5000/activities/1 \
 -H "Content-Type: application/json" \
 -d '{
+  "id": 1,
   "title": "Morning Run",
   "description": "5km jog around the park",
   "durationHours": 0,
