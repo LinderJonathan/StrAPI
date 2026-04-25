@@ -4,7 +4,8 @@ import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
+  /*TODO: Investigate if BrowserRouter can be used here instead */
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 )
