@@ -1,7 +1,11 @@
+import ActivityForm from '../components/ActivityForm'
+
 function Home() {
     return (
-        <h1>Home</h1>
-        
+        <div>
+            <h1>Home</h1>
+            <ActivityForm />
+        </div>
     )
     // TODO: POST activity form sent do backend
     // TODO: PUT activity. Maybe at later stage in some "activities" hub
