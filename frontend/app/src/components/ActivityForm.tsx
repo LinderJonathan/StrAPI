@@ -1,45 +1,61 @@
-import { useState } from "react"
+import React, { useState } from "react"
+type formData = {
+    title: string,
+    description: string,
+    durationHours: string,
+    durationMinutes: string,
+    durationSeconds: string,
+    activityType: string
+}
+
+const fields: { name: keyof formData;  label: string}[] = [
+    {name: "title", label: "Title"},
+    {name: "description", label: "Description"},
+    {name: "durationHours", label: "Duration (hours)"},
+    {name: "durationMinutes", label: "Duration (minutes)"},
+    {name: "durationSeconds", label: "Duration (seconds)"},
+    {name: "activityType", label: "Activity type"}
+]
+
 
 function ActivityForm() {
 
-    const fields = [
-        {name: "title", label: "Title"},
-        {name: "description", label: "Description"},
-        {name: "durationHours", label: "Duration (hours)"},
-        {name: "durationMinutes", label: "Duration (minutes)"},
-        {name: "durationSeconds", label: "Duration (seconds)"},
-        {name: "activityType", label: "Activity type"}
-    ]
-
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<formData>({
         title: "",
         description: "",
         durationHours: "",
-        durrationMinutes: "",
+        durationMinutes: "",
         durationSeconds: "",
         activityType: ""
     })
 
-    // TODO: see that formData.title is updated
-    // TODO: make it general for all the fields
+    // updates the useState
+    const handeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        
+        setFormData(prev => ({...prev, [name]: value}))
+    }
+
+    // does something with the (now written to) useState
+    // TODO: retrieve data from formData -> send a POST request query with it to the backend
+    const handleSubmit = (e: React.form<HTMLInputElement>)
+
     return (
         <div>
             {fields.map((field) => (
                 <div key={field.name}>
-                    <label >{field.label}</label>
-
-                    {field.name == "title" ? (
+                    <form onSubmit={handleSubmit}>
+                        // TODO: 
+                        <button type="submit">save</button>
+                        <label >{field.label}</label>
                         <input
                             type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={(e) =>
-                                setFormData({ ...formData, title: e.target.value})
-                            }
-                            />
-                    ) :    
-                    <input type="text" />
-                    }
+                            name={field.name}
+                            value={formData[field.name]}
+                            onChange={handeInputChange}
+                        />
+                    </form>
+
                 </div>
             ))}
             <p>{formData.title}</p>
