@@ -10,6 +10,7 @@ import (
 	"strAPI/db"
 	"strAPI/util"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +20,7 @@ func main() {
 	defer db.DBConn.Close()
 
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.GET("/activities", getAllActivities)
 	router.GET("/activities/:id", getActivity)
 	router.POST("/activities", postActivity)

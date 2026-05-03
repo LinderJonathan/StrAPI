@@ -11,7 +11,6 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(
-  /*TODO: Investigate if BrowserRouter can be used here instead */
   <StrictMode>
     <App />
   </StrictMode>
