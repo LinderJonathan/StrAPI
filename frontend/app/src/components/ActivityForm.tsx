@@ -103,19 +103,20 @@ function ActivityForm() {
  * @returns: Server response object
 */
 function createActivity(data: activityPayload) {
-    
+    console.log(data);
+    console.log(JSON.stringify(data));
     return fetch(
         `${BASE_URL}/${POST_ACTIVITY_ENDPOINT}`,
         {
             method: 'POST',
             headers:
             {
-                'Content-Type': 'application/json'        
+                'Content-Type': 'application/json'
             },
             // TODO: fields in 'data' are not parsed to int (duration, ...)
             body: JSON.stringify(data)
         }
-    )
+    );
 }
 
 export default ActivityForm

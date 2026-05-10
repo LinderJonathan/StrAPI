@@ -19,7 +19,7 @@ type Activity struct {
 	DurationHours   uint8        `json:"durationHours"`
 	DurationMinutes uint8        `json:"durationMinutes"`
 	DurationSeconds uint8        `json:"durationSeconds"`
-	ActivityType    ActivityType `json:"activity"`
+	ActivityType    ActivityType `json:"ActivityType"`
 }
 
 type ActivityRequest struct {
@@ -28,7 +28,7 @@ type ActivityRequest struct {
 	DurationHours   uint8        `json:"durationHours"`
 	DurationMinutes uint8        `json:"durationMinutes"`
 	DurationSeconds uint8        `json:"durationSeconds"`
-	ActivityType    ActivityType `json:"activity"`
+	ActivityType    ActivityType `json:"activityType"`
 }
 
 func ValidateActivity(activityRequest *ActivityRequest) error {
