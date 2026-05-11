@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import React, { useState } from "react";
 import { BASE_URL, POST_ACTIVITY_ENDPOINT } from "../util/urls";
+import { activityPayload } from "../util/CommonTypes";
 
 type formData = {
     title: string,
@@ -10,14 +11,6 @@ type formData = {
     activityType: string
 }
 
-type activityPayload = {
-    title: string,
-    description: string,
-    durationHours: number,
-    durationMinutes: number,
-    durationSeconds: number,
-    activityType: number
-}
 const fields: { name: keyof formData;  label: string}[] = [
     {name: "title", label: "Title"},
     {name: "description", label: "Description"},
@@ -59,7 +52,6 @@ function ActivityForm() {
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        // TODO: rerun the form tommorow with now parsed type members
         const payload =
         {
             ...formData,
@@ -113,7 +105,6 @@ function createActivity(data: activityPayload) {
             {
                 'Content-Type': 'application/json'
             },
-            // TODO: fields in 'data' are not parsed to int (duration, ...)
             body: JSON.stringify(data)
         }
     );
