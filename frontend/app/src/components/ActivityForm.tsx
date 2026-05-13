@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BASE_URL, POST_ACTIVITY_ENDPOINT } from "../util/urls";
+import { BASE_URL, ACTIVITY_ENDPOINT } from "../util/urls";
 import { activityPayload } from "../util/CommonTypes";
 
 type formData = {
@@ -95,10 +95,8 @@ function ActivityForm() {
  * @returns: Server response object
 */
 function createActivity(data: activityPayload) {
-    console.log(data);
-    console.log(JSON.stringify(data));
     return fetch(
-        `${BASE_URL}/${POST_ACTIVITY_ENDPOINT}`,
+        `${BASE_URL}/${ACTIVITY_ENDPOINT}`,
         {
             method: 'POST',
             headers:

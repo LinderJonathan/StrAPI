@@ -37,18 +37,17 @@ func main() {
  */
 func getAllActivities(c *gin.Context) {
 
-	var activities []util.Activity
+	var activityRequests []util.ActivityRequest
 
 	query := `
 	SELECT 
-		id, 
 		title,
 		description,
 		durationHours,
 		durationMinutes,
 		durationSeconds,
 		activityType
-	FROM Activities 
+	FROM Activities
 	`
 	rows, err := db.DBConn.Query(query)
 
@@ -58,28 +57,27 @@ func getAllActivities(c *gin.Context) {
 	}
 
 	for rows.Next() {
-		var activity util.Activity
+		var activityRequest util.ActivityRequest
 		err := rows.Scan(
-			&activity.Id,
-			&activity.Title,
-			&activity.Description,
-			&activity.DurationHours,
-			&activity.DurationMinutes,
-			&activity.DurationSeconds,
-			&activity.ActivityType)
+			&activityRequest.Title,
+			&activityRequest.Description,
+			&activityRequest.DurationHours,
+			&activityRequest.DurationMinutes,
+			&activityRequest.DurationSeconds,
+			&activityRequest.ActivityType)
 
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		activities = append(activities, activity)
+		activityRequests = append(activityRequests, activityRequest)
 	}
 
 	if err := rows.Err(); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	c.IndentedJSON(http.StatusOK, activities)
+	c.IndentedJSON(http.StatusOK, activityRequests)
 }
 
 /*

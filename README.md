@@ -21,7 +21,7 @@ curl -X POST http://localhost:5000/activities \
   "durationHours": 1,
   "durationMinutes": 1,
   "durationSeconds": 1,
-  "activity": 1
+  "activityType": 1
 }'
 ```
 
