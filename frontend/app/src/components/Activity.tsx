@@ -1,15 +1,15 @@
 import { activityPayload } from "../util/CommonTypes.tsx"
 
-function Activity(activity: activityPayload) {
+function Activity(props: activityPayload) {
 
     return <>
         <div className="Activity">
-            <li>{activity.title}</li>
-            <li>{activity.description}</li>
-            <li>{activity.durationHours}</li>
-            <li>{activity.durationMinutes}</li>
-            <li>{activity.durationSeconds}</li>
-            <li>{activity.activityType}</li>
+            <li>{props.title}</li>
+            <li>{props.description}</li>
+            <li>{props.durationHours}</li>
+            <li>{props.durationMinutes}</li>
+            <li>{props.durationSeconds}</li>
+            <li>{props.activityType}</li>
         </div>
     </>;
 }
