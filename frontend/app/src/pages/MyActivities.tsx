@@ -13,6 +13,7 @@ function MyActivities() {
 
     const [activities, setActivities] = useState<activityPayload[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     // TODO: add error and loading
     useEffect(() => {
@@ -20,6 +21,11 @@ function MyActivities() {
             .then(
                 data => {
                     setActivities(data);
+                }
+            )
+            .catch(
+                error => {
+                    setError(error);
                 }
             )
     }, []);
